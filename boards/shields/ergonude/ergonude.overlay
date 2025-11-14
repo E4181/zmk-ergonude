@@ -15,7 +15,10 @@
         zmk,kscan = &kscan0;
         zmk,physical-layout = &physical_layout0;
         zmk,studio-rpc-uart = &uart0;
+        zephyr,code-partition = &code_partition;
+        zephyr,console = &uart0;
 		zmk,underglow = &led_strip;
+		zmk,battery = &vbatt;
     };
 
 	vbatt: vbatt {
@@ -91,4 +94,12 @@
 
 &usbd {
 	status = "okay";
+};
+
+// 禁用NFC
+&uart0 {
+    status = "okay";
+    compatible = "nordic,nrf-uarte";
+    tx-pin = <33>;  // 使用其他引脚
+    rx-pin = <34>;
 };
