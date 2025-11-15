@@ -79,7 +79,7 @@
 
 &adc {
     status = "okay";
-    //io-channels = <&adc 2>;
+    io-channels = <&adc 2>;
 };
 
 &gpiote {
@@ -95,9 +95,12 @@
 };
 
 &uart0 {
-        status = "disabled";
+    status = "disabled";
     };
 
+&i2c0 {
+    status = "disabled";
+    };
 
 &flash0 {
     /*
