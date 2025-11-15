@@ -1,5 +1,4 @@
 #include <dt-bindings/zmk/matrix_transform.h>
-#include <nordic/nrf52840_qiaa.dtsi>
 #include <dt-bindings/led/led.h>
 #include "ergonude-layouts.dtsi"
 #include "ergonude.dtsi"
