@@ -8,8 +8,7 @@ LOG_MODULE_REGISTER(my_gpio_init, LOG_LEVEL_DBG);  // 启用调试日志
 #define PIN_NUMBER 5       // P0.05
 
 // 初始化函数：在 boot 时配置 P0.05 为输入带下拉
-static int init_p005_gpio(const struct device *dev) {
-    ARG_UNUSED(dev);  // 未使用参数
+static int init_p005_gpio(void) {
 
     const struct device *gpio_dev = device_get_binding(GPIO_PORT);
     if (!gpio_dev) {
