@@ -1,6 +1,6 @@
 #include <physical_layouts.dtsi>
 
-&uart1 {
+&uart0 {
     status = "okay";
     compatible = "nordic,nrf-uarte";
     current-speed = <115200>;

@@ -13,7 +13,7 @@
     chosen {
         zmk,kscan = &kscan0;
         zmk,physical-layout = &physical_layout0;
-        zmk,studio-rpc-uart = &uart1;
+        zmk,studio-rpc-uart = &uart0;
 		zmk,underglow = &led_strip;
     };
 
