@@ -1,3 +1,4 @@
+/* 自定义引脚配置文件 - custom_pinmux.c */
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/init.h>
@@ -6,8 +7,6 @@
 #include <zephyr/sys/printk.h>
 
 static int custom_pinmux_init(void) {
-    ARG_UNUSED(); // 如果没有参数需要处理
-    
     const struct device *gpio0 = DEVICE_DT_GET(DT_NODELABEL(gpio0));
     
     if (!device_is_ready(gpio0)) {
@@ -15,15 +14,14 @@ static int custom_pinmux_init(void) {
         return -ENODEV;
     }
     
+    /* 等待原初始化完成 */
+    k_msleep(5);
+    
     /* 重新配置 P0.05 为矩阵行输入引脚 */
-    int ret = gpio_pin_configure(gpio0, 5, GPIO_INPUT);
+    int ret = gpio_pin_configure(gpio0, 5, GPIO_INPUT | GPIO_PULL_DOWN);
     
     if (ret == 0) {
         printk("Successfully configured P0.05 as matrix row input\n");
-        
-        // 验证配置
-        int val = gpio_pin_get(gpio0, 5);
-        printk("P0.05 current value: %d\n", val);
     } else {
         printk("Failed to configure P0.05: %d\n", ret);
     }
@@ -31,4 +29,5 @@ static int custom_pinmux_init(void) {
     return ret;
 }
 
+/* 使用 POST_KERNEL 和较高优先级确保覆盖 */
 SYS_INIT(custom_pinmux_init, POST_KERNEL, 80);
