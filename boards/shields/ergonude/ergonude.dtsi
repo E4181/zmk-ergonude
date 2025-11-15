@@ -10,6 +10,16 @@
             low-power-enable;
         };
     };
+
+    matrix_pins: matrix_pins {
+        group1 {
+            psels = <NRF_PSEL(GPIO, 0, 5)>, 
+                    <NRF_PSEL(GPIO, 0, 6)>;
+            nordic,drive-mode = <NRF_DRIVE_S0S1>;  // 标准驱动模式
+            //nordic,low-power-enable;  // 低功耗启用（可选，用于输入）
+            bias-pull-down;  // 下拉电阻（适用于矩阵行引脚，如果是 col2row 模式）
+        };
+    };
 };
 
 &spi3 {
