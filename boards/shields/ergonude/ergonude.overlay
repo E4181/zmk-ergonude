@@ -22,12 +22,6 @@
 		zmk,battery = &vbatt;
     };
 
-    /* 在根节点添加NFC禁用 */
-    nfc_override: nfc_override {
-        compatible = "nordic,nfc-pins";
-        status = "disabled";
-    };
-
 	vbatt: vbatt {
 		compatible = "zmk,battery-voltage-divider";
 		label = "VBATT";
