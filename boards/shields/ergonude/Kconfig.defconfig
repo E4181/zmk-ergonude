@@ -4,9 +4,3 @@ config ZMK_KEYBOARD_NAME
     default "ergonude"
       
 endif
-
-# 完全禁用充电器功能
-CONFIG_BOARD_NRFMICRO_CHARGER=n
-
-# 确保 ZMK 矩阵功能正常工作
-CONFIG_ZMK_KSCAN_GPIO_MATRIX=y
