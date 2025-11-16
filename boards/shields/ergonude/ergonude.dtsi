@@ -10,6 +10,15 @@
             low-power-enable;
         };
     };
+
+        // 为P0.05创建自定义配置
+    p0_05_custom: p0_05_custom {
+        group1 {
+            psels = <NRF_PSEL(GPIO, 0, 5)>;
+            bias-pull-down;
+            input-enable;
+        };
+    };
 };
 
 &spi3 {
