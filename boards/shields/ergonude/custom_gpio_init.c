@@ -1,12 +1,10 @@
-// 在自定义代码文件中添加
+// custom_gpio_init.c
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/init.h>
 
-static int custom_gpio_init(const struct device *dev)
+static int custom_gpio_init(void)
 {
-    ARG_UNUSED(dev);
-    
     const struct device *gpio0 = DEVICE_DT_GET(DT_NODELABEL(gpio0));
     
     if (!device_is_ready(gpio0)) {
@@ -14,7 +12,10 @@ static int custom_gpio_init(const struct device *dev)
     }
     
     // 强制配置P0.05为输入下拉
-    gpio_pin_configure(gpio0, 5, GPIO_INPUT | GPIO_PULL_DOWN);
+    int ret = gpio_pin_configure(gpio0, 5, GPIO_INPUT | GPIO_PULL_DOWN);
+    if (ret < 0) {
+        return ret;
+    }
     
     return 0;
 }
