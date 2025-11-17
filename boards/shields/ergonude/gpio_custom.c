@@ -9,6 +9,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define P0_05_PIN  5
 
 static const struct device *gpio0_dev;
+static struct k_work_delayable check_work;
 
 // 强力重新配置P0.05，确保它是输入模式
 static int force_p0_05_input_config(void)
@@ -46,7 +47,7 @@ static void check_p0_05_mode(void)
     }
     
     // 通过尝试改变状态来检测当前模式
-    int original_state = gpio_pin_get(gpio0_dev, P0_05_PIN);
+    // 移除未使用的变量 original_state
     
     // 尝试设置为输出低电平
     int ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_OUTPUT_LOW);
@@ -65,6 +66,13 @@ static void check_p0_05_mode(void)
     LOG_INF("P0.05 final check - state: %d", gpio_pin_get(gpio0_dev, P0_05_PIN));
 }
 
+// 定期检查工作处理函数
+static void periodic_check_handler(struct k_work *work)
+{
+    check_p0_05_mode();
+    k_work_reschedule(&check_work, K_MSEC(2000));
+}
+
 static int gpio_p0_05_fix_init(void)
 {
     LOG_INF("Initializing P0.05 fix");
@@ -76,11 +84,7 @@ static int gpio_p0_05_fix_init(void)
     }
     
     // 设置定期检查
-    static struct k_work_delayable check_work;
-    k_work_init_delayable(&check_work, [](struct k_work *work) {
-        check_p0_05_mode();
-        k_work_reschedule(&check_work, K_MSEC(2000));
-    });
+    k_work_init_delayable(&check_work, periodic_check_handler);
     k_work_reschedule(&check_work, K_MSEC(1000));
     
     return 0;
