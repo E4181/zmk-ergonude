@@ -3,15 +3,13 @@
  * 用于ZMK键盘矩阵行引脚配置，加强下拉能力
  */
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 #include <zephyr/types.h>
-#include <drivers/gpio.h>
-#include <nrfx_gpio.h>
-#include <device.h>
-#include <devicetree.h>
-#include <init.h>
-#include <kernel.h>
-#include <sys/printk.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/init.h>
+#include <zephyr/sys/printk.h>
 
 /* nRF52840 GPIO 寄存器基地址 */
 #define NRF_P0_BASE              0x50000000UL
