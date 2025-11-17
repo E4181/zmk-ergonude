@@ -9,112 +9,56 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define P0_05_PIN  5
 
 static const struct device *gpio0_dev;
-static struct k_work_delayable hammer_work;
+static struct k_work_delayable last_resort_work;
 
-// 强力重置P0.05配置
-static void hammer_p0_05_config(void)
+// 最后手段：完全绕过ZMK矩阵扫描，直接实现P0.05行的扫描
+static void last_resort_scan(void)
 {
-    static int hammer_count = 0;
-    
-    if (!gpio0_dev) {
-        gpio0_dev = DEVICE_DT_GET(P0_05_PORT);
-    }
-    
-    if (!device_is_ready(gpio0_dev)) {
-        if (hammer_count < 3) {
-            LOG_ERR("GPIO0 not ready");
-        }
-        return;
-    }
-    
-    // 方法1: 先尝试配置为输出低电平，确保我们能控制引脚
-    int ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW);
-    if (ret == 0) {
-        // 短暂保持输出低电平
-        k_busy_wait(100);
-        
-        // 然后立即重新配置为输入下拉
-        ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT | GPIO_PULL_DOWN);
-        
-        if (ret == 0) {
-            hammer_count++;
-            
-            if (hammer_count <= 5 || (hammer_count % 20 == 0)) {
-                LOG_INF("P0.05 hammer config #%d: OUTPUT->INPUT", hammer_count);
-                
-                // 读取状态验证
-                int state = gpio_pin_get(gpio0_dev, P0_05_PIN);
-                LOG_INF("P0.05 state after hammer: %d", state);
-            }
-        } else {
-            LOG_ERR("P0.05 input reconfiguration failed: %d", ret);
-        }
-    } else {
-        LOG_ERR("P0.05 output configuration failed: %d", ret);
-    }
-}
-
-// 尝试不同的配置方法
-static void alternative_p0_05_config(void)
-{
-    static int alt_count = 0;
+    static int scan_count = 0;
     
     if (!gpio0_dev || !device_is_ready(gpio0_dev)) {
         return;
     }
     
-    // 尝试不带上下拉的配置
-    int ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT);
-    if (ret == 0) {
-        alt_count++;
-        if (alt_count <= 3) {
-            LOG_INF("P0.05 alternative config #%d: input without pull", alt_count);
-        }
-    }
-}
-
-static void hammer_handler(struct k_work *work)
-{
-    static int work_count = 0;
+    // 强力确保P0.05是输入模式
+    gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT | GPIO_PULL_DOWN);
     
-    // 主要使用强力重置方法
-    hammer_p0_05_config();
+    // 读取当前状态
+    int state = gpio_pin_get(gpio0_dev, P0_05_PIN);
     
-    // 偶尔尝试替代方法
-    if (work_count % 10 == 0) {
-        alternative_p0_05_config();
+    scan_count++;
+    
+    // 减少日志输出
+    if (scan_count <= 10 || (scan_count % 100 == 0)) {
+        LOG_INF("P0.05 last resort scan #%d: state=%d", scan_count, state);
     }
     
-    work_count++;
-    
-    // 非常激进的频率：前期快速，后期维持
-    uint32_t delay_ms = (work_count < 20) ? 50 :   // 50ms间隔
-                        (work_count < 50) ? 100 :  // 100ms间隔
-                        500;                       // 500ms间隔
-    
-    k_work_reschedule(&hammer_work, K_MSEC(delay_ms));
+    // 如果检测到高电平（按键按下），可以在这里处理按键事件
+    // 注意：这需要与ZMK的矩阵扫描集成，比较复杂
 }
 
-static int gpio_p0_05_hammer_init(void)
+static void last_resort_handler(struct k_work *work)
 {
-    LOG_INF("=== STARTING P0.05 HAMMER FIX ===");
+    last_resort_scan();
     
-    // 获取GPIO设备
+    // 非常高的扫描频率
+    k_work_reschedule(&last_resort_work, K_MSEC(20)); // 50Hz扫描
+}
+
+static int gpio_p0_05_last_resort_init(void)
+{
+    LOG_INF("=== STARTING P0.05 LAST RESORT ===");
+    
     gpio0_dev = DEVICE_DT_GET(P0_05_PORT);
-    if (!device_is_ready(gpio0_dev)) {
-        LOG_ERR("GPIO0 not ready at init");
-        // 我们仍然会尝试，因为设备可能在之后变得可用
-    }
     
-    // 立即开始强力修复
-    hammer_p0_05_config();
+    // 立即开始扫描
+    last_resort_scan();
     
-    // 启动持续修复
-    k_work_init_delayable(&hammer_work, hammer_handler);
-    k_work_reschedule(&hammer_work, K_MSEC(10)); // 10ms后开始
+    // 启动持续扫描
+    k_work_init_delayable(&last_resort_work, last_resort_handler);
+    k_work_reschedule(&last_resort_work, K_MSEC(10));
     
-    LOG_INF("=== P0.05 HAMMER FIX STARTED ===");
     return 0;
 }
 
-SYS_INIT(gpio_p0_05_hammer_init, POST_KERNEL, 30);
+SYS_INIT(gpio_p0_05_last_resort_init, POST_KERNEL, 20);
