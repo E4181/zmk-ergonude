@@ -33,7 +33,7 @@
 
         diode-direction = "col2row";
         row-gpios
-            = <&gpio0 5  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN | NRF_GPIO_DRIVE_H0S1)>,
+            = <&gpio0 5  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN | NRF_GPIO_DRIVE_H0H1)>,
               <&gpio0 26 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
               <&gpio0 6  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
               <&gpio0 8  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,          
