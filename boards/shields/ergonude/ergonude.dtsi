@@ -12,13 +12,6 @@
             low-power-enable;
         };
     };
-    gpio0_05_default: gpio0_05_default {
-        group1 {
-            psels = <NRF_PSEL(GPIO, 0, 5)>;
-            bias-pull-down;  // 与你的 row 配置一致
-            nordic,drive-mode = <NRF_DRIVE_S0S1>;  // 标准驱动，或 <NRF_DRIVE_H0H1> 高驱动
-        };
-    };
 };
 
 &spi3 {
