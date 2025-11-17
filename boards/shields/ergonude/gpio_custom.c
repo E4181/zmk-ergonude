@@ -11,6 +11,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define P0_05_PIN  5
 
 static const struct device *gpio0_dev;
+static struct k_work_delayable reconfig_work;
 
 // 强制配置P0.05为GPIO输入（带上拉）
 static int force_p0_05_gpio_config(void)
@@ -52,11 +53,7 @@ static void check_p0_05_status(void)
     // 读取引脚状态
     int state = gpio_pin_get(gpio0_dev, P0_05_PIN);
     
-    // 尝试读取引脚配置（注意：Zephyr API 可能不直接支持读取配置）
-    // 我们通过尝试重新配置来间接检查当前状态
     LOG_INF("P0.05 current state: %d", state);
-    
-    // 测试引脚响应
     LOG_INF("P0.05 status: device_ready=%d, pin_state=%d", 
            device_is_ready(gpio0_dev), state);
 }
@@ -99,14 +96,12 @@ static void periodic_reconfig_handler(struct k_work *work)
         delay_ms = 2000;
     }
     
-    k_work_reschedule((struct k_work_delayable *)work, K_MSEC(delay_ms));
+    k_work_reschedule(&reconfig_work, K_MSEC(delay_ms));
 }
 
-// 初始化函数
-static int gpio_custom_init(const struct device *dev)
+// 修正初始化函数 - 移除device参数
+static int gpio_custom_init(void)
 {
-    ARG_UNUSED(dev);
-    
     LOG_INF("Initializing GPIO custom fix for P0.05");
     
     // 等待系统基本初始化完成
@@ -119,7 +114,6 @@ static int gpio_custom_init(const struct device *dev)
     }
     
     // 启动定期重配工作
-    static struct k_work_delayable reconfig_work;
     k_work_init_delayable(&reconfig_work, periodic_reconfig_handler);
     
     // 首次延迟后开始定期重配
