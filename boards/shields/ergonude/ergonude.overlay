@@ -31,6 +31,10 @@
         compatible = "zmk,kscan-gpio-matrix";
         wakeup-source;
 
+        pinctrl-0 = <&matrix_default>;
+        pinctrl-1 = <&matrix_sleep>;
+        pinctrl-names = "default", "sleep";
+        
         diode-direction = "col2row";
         row-gpios
             = <&gpio0 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN | GPIO_DRIVE_H0H1)>,
