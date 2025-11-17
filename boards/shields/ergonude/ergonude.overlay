@@ -3,7 +3,7 @@
 #include <dt-bindings/gpio/gpio.h>
 #include "ergonude-layouts.dtsi"
 #include "ergonude.dtsi"
-
+#include <dt-bindings/gpio/nordic-nrf-gpio.h>
 
 
 &physical_layout0 {
@@ -38,27 +38,27 @@
               <&gpio0 6  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
               <&gpio0 8  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,          
               <&gpio0 7  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-        col-gpios
-            = <&gpio0 3  GPIO_ACTIVE_HIGH>,
-              <&gpio0 28 GPIO_ACTIVE_HIGH>,
-              <&gpio1 13 GPIO_ACTIVE_HIGH>,
-              <&gpio0 2  GPIO_ACTIVE_HIGH>,
-              <&gpio0 29 GPIO_ACTIVE_HIGH>,
-              <&gpio0 31 GPIO_ACTIVE_HIGH>,
-              <&gpio0 30 GPIO_ACTIVE_HIGH>,
-              <&gpio1 9  GPIO_ACTIVE_HIGH>,
-              <&gpio1 10 GPIO_ACTIVE_HIGH>,
-              <&gpio1 11 GPIO_ACTIVE_HIGH>,
-              <&gpio0 10 GPIO_ACTIVE_HIGH>,
-              <&gpio0 9  GPIO_ACTIVE_HIGH>,
-              <&gpio0 24 GPIO_ACTIVE_HIGH>,
-              <&gpio0 13 GPIO_ACTIVE_HIGH>,
-              <&gpio1 6  GPIO_ACTIVE_HIGH>,
-              <&gpio1 4  GPIO_ACTIVE_HIGH>,
-              <&gpio1 2  GPIO_ACTIVE_HIGH>,
-              <&gpio1 0  GPIO_ACTIVE_HIGH>,
-              <&gpio0 22 GPIO_ACTIVE_HIGH>;
-    };
+col-gpios
+        = <&gpio0 3 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,  // 增强高电平驱动
+          <&gpio0 28 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 13 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 2 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 29 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 31 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 30 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 9 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 10 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 11 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 10 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 9 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 24 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 13 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 6 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 4 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 2 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio1 0 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>,
+          <&gpio0 22 (GPIO_ACTIVE_HIGH | NRF_GPIO_DRIVE_S0H1)>;
+};
 
     default_transform: matrix_transform {
         compatible = "zmk,matrix-transform";
