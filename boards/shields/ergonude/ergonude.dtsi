@@ -32,39 +32,3 @@
         color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
     };
 };
-/ {
-    // 禁用可能使用P0.05的外设
-    fragment@0 {
-        target = <&uart0>;
-        __overlay__ {
-            status = "disabled";
-        };
-    };
-
-    fragment@1 {
-        target = <&i2c0>;
-        __overlay__ {
-            status = "disabled";
-        };
-    };
-
-    fragment@2 {
-        target = <&spi0>;
-        __overlay__ {
-            status = "disabled";
-        };
-    };
-
-    // 确保P0.05配置为GPIO
-    fragment@3 {
-        target = <&pinctrl>;
-        __overlay__ {
-            p0_05_default: p0_05_default {
-                nordic,pins = <0x05>;
-                nordic,drive-mode = <GPIO_DRIVE_MODE_STANDARD>;
-                nordic,input-enable;
-                nordic,pull-down;
-            };
-        };
-    };
-};
