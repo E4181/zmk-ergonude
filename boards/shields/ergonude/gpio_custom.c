@@ -26,7 +26,7 @@ static int force_p0_05_gpio_config(void)
     
     // 使用底层GPIO配置，配置为输入带下拉
     ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, 
-                           GPIO_INPUT | GPIO_PULL_DOWN);
+                           GPIO_INPUT | GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH);
     if (ret < 0) {
         LOG_ERR("Failed to configure P0.05 as GPIO input with pull-down: %d", ret);
         return ret;
