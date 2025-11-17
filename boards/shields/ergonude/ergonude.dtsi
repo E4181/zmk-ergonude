@@ -15,13 +15,13 @@
 
     gpio0_default: gpio0_default {
         group1 {
-            psels = <NRF_PSEL(GPIO0, 5, 0)>;  // P0.05 默认状态：GPIO 输入
+            psels = <NRF_PSEL(GPIO0, 5, 0)>;
         };
     };
 
     gpio0_sleep: gpio0_sleep {
         group1 {
-            psels = <NRF_PSEL(GPIO0, 5, 1)>;  // 睡眠状态：低功耗
+            psels = <NRF_PSEL(GPIO0, 5, 1)>;
             low-power-enable;
         };
     };
