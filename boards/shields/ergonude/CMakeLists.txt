@@ -1,3 +1,3 @@
 target_sources(app PRIVATE
-    gpio_custom.c
+    #gpio_custom.c
 )
