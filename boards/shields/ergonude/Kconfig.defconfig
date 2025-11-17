@@ -4,19 +4,3 @@ config ZMK_KEYBOARD_NAME
     default "ergonude"
       
 endif
-
-menuconfig GPIO_CUSTOM
-    bool "Custom GPIO configuration for P0.05 fix"
-    default y
-    help
-      Enable custom GPIO configuration to fix P0.05 pin as matrix row input
-
-if GPIO_CUSTOM
-
-config GPIO_CUSTOM_DEBUG
-    bool "Enable debug output for GPIO custom"
-    default n
-    help
-      Enable debug logging for the GPIO custom module
-
-endif
