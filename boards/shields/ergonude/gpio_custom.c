@@ -2,7 +2,6 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/sys/printk.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -13,7 +12,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static const struct device *gpio0_dev;
 static struct k_work_delayable reconfig_work;
 
-// 强制配置P0.05为GPIO输入（带上拉）
+// 强制配置P0.05为GPIO输入（带下拉）
 static int force_p0_05_gpio_config(void)
 {
     int ret;
@@ -25,19 +24,19 @@ static int force_p0_05_gpio_config(void)
         return -ENODEV;
     }
     
-    // 使用底层GPIO配置，完全绕过设备树设置
+    // 使用底层GPIO配置，配置为输入带下拉
     ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, 
-                           GPIO_INPUT | GPIO_PULL_UP | GPIO_ACTIVE_HIGH);
+                           GPIO_INPUT | GPIO_PULL_DOWN);
     if (ret < 0) {
-        LOG_ERR("Failed to configure P0.05 as GPIO input: %d", ret);
+        LOG_ERR("Failed to configure P0.05 as GPIO input with pull-down: %d", ret);
         return ret;
     }
     
-    LOG_INF("P0.05 successfully forced to GPIO input with pull-up");
+    LOG_INF("P0.05 successfully forced to GPIO input with pull-down");
     
     // 验证配置和初始状态
     int pin_state = gpio_pin_get(gpio0_dev, P0_05_PIN);
-    LOG_INF("P0.05 initial state: %d", pin_state);
+    LOG_INF("P0.05 initial state: %d (should be 0 with pull-down)", pin_state);
     
     return 0;
 }
@@ -54,8 +53,6 @@ static void check_p0_05_status(void)
     int state = gpio_pin_get(gpio0_dev, P0_05_PIN);
     
     LOG_INF("P0.05 current state: %d", state);
-    LOG_INF("P0.05 status: device_ready=%d, pin_state=%d", 
-           device_is_ready(gpio0_dev), state);
 }
 
 // 定期重新配置P0.05（防止被其他驱动修改）
@@ -70,39 +67,31 @@ static void periodic_reconfig_handler(struct k_work *work)
     if (ret == 0) {
         reconfig_count++;
         
-        // 记录成功重配次数
-        if (reconfig_count % 10 == 0) {
+        // 减少日志输出频率，避免干扰
+        if (reconfig_count <= 3 || reconfig_count % 20 == 0) {
             LOG_DBG("P0.05 reconfiguration successful, count: %d", reconfig_count);
-        }
-        
-        // 检查引脚状态（调试）
-        if (reconfig_count <= 3) {
-            check_p0_05_status();
         }
     } else {
         LOG_ERR("P0.05 reconfiguration failed: %d", ret);
     }
     
-    // 动态调整重配频率：
-    // - 前5次：快速重配（100ms）
-    // - 接下来10次：中等频率（500ms）  
-    // - 之后：较低频率（2000ms）
+    // 动态调整重配频率
     uint32_t delay_ms;
     if (reconfig_count < 5) {
-        delay_ms = 100;
+        delay_ms = 100;      // 前期快速重配
     } else if (reconfig_count < 15) {
-        delay_ms = 500;
+        delay_ms = 500;      // 中期中等频率
     } else {
-        delay_ms = 2000;
+        delay_ms = 2000;     // 后期较低频率
     }
     
     k_work_reschedule(&reconfig_work, K_MSEC(delay_ms));
 }
 
-// 修正初始化函数 - 移除device参数
+// 初始化函数
 static int gpio_custom_init(void)
 {
-    LOG_INF("Initializing GPIO custom fix for P0.05");
+    LOG_INF("Initializing GPIO custom fix for P0.05 (pull-down)");
     
     // 等待系统基本初始化完成
     k_msleep(50);
