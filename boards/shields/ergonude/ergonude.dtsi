@@ -13,12 +13,6 @@
             low-power-enable;
         };
     };
-    my_matrix_row: my_matrix_row {
-        nordic,pins = <0x05>;  // P0.05
-        nordic,drive-mode = <GPIO_DRIVE_MODE_STANDARD>;
-        nordic,input-enable;
-        nordic,pull-down;
-    };
 };
 
 &spi3 {
