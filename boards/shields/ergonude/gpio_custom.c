@@ -9,91 +9,112 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define P0_05_PIN  5
 
 static const struct device *gpio0_dev;
-static struct k_work_delayable fix_work;
+static struct k_work_delayable hammer_work;
 
-// 配置P0.05为输入下拉
-static int configure_p0_05(void)
+// 强力重置P0.05配置
+static void hammer_p0_05_config(void)
 {
-    int ret;
+    static int hammer_count = 0;
     
     if (!gpio0_dev) {
         gpio0_dev = DEVICE_DT_GET(P0_05_PORT);
     }
     
     if (!device_is_ready(gpio0_dev)) {
-        LOG_ERR("GPIO0 device not ready");
-        return -ENODEV;
+        if (hammer_count < 3) {
+            LOG_ERR("GPIO0 not ready");
+        }
+        return;
     }
     
-    // 配置为输入带下拉
-    ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT | GPIO_PULL_DOWN);
-    if (ret < 0) {
-        LOG_ERR("Failed to configure P0.05: %d", ret);
-        return ret;
+    // 方法1: 先尝试配置为输出低电平，确保我们能控制引脚
+    int ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW);
+    if (ret == 0) {
+        // 短暂保持输出低电平
+        k_busy_wait(100);
+        
+        // 然后立即重新配置为输入下拉
+        ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT | GPIO_PULL_DOWN);
+        
+        if (ret == 0) {
+            hammer_count++;
+            
+            if (hammer_count <= 5 || (hammer_count % 20 == 0)) {
+                LOG_INF("P0.05 hammer config #%d: OUTPUT->INPUT", hammer_count);
+                
+                // 读取状态验证
+                int state = gpio_pin_get(gpio0_dev, P0_05_PIN);
+                LOG_INF("P0.05 state after hammer: %d", state);
+            }
+        } else {
+            LOG_ERR("P0.05 input reconfiguration failed: %d", ret);
+        }
+    } else {
+        LOG_ERR("P0.05 output configuration failed: %d", ret);
     }
-    
-    return 0;
 }
 
-// 读取并记录P0.05状态
-static void monitor_p0_05(void)
+// 尝试不同的配置方法
+static void alternative_p0_05_config(void)
 {
-    static int last_state = -1;
+    static int alt_count = 0;
     
     if (!gpio0_dev || !device_is_ready(gpio0_dev)) {
         return;
     }
     
-    int current_state = gpio_pin_get(gpio0_dev, P0_05_PIN);
-    
-    if (current_state != last_state) {
-        LOG_INF("P0.05 state changed: %d -> %d", last_state, current_state);
-        last_state = current_state;
-    }
-}
-
-// 修复工作处理函数
-static void fix_handler(struct k_work *work)
-{
-    static int fix_count = 0;
-    
-    // 定期重新配置
-    int ret = configure_p0_05();
-    
+    // 尝试不带上下拉的配置
+    int ret = gpio_pin_configure(gpio0_dev, P0_05_PIN, GPIO_INPUT);
     if (ret == 0) {
-        fix_count++;
-        
-        // 减少日志输出频率
-        if (fix_count <= 5 || (fix_count % 20 == 0)) {
-            LOG_INF("P0.05 fix applied (%d times)", fix_count);
-            
-            // 监控状态变化
-            monitor_p0_05();
+        alt_count++;
+        if (alt_count <= 3) {
+            LOG_INF("P0.05 alternative config #%d: input without pull", alt_count);
         }
-    } else {
-        LOG_ERR("P0.05 configuration failed on attempt %d", fix_count);
     }
-    
-    // 动态调整频率
-    uint32_t delay_ms = (fix_count < 10) ? 100 :
-                        (fix_count < 30) ? 500 :
-                        2000;
-    
-    k_work_reschedule(&fix_work, K_MSEC(delay_ms));
 }
 
-static int gpio_p0_05_fix_init(void)
+static void hammer_handler(struct k_work *work)
 {
-    LOG_INF("Starting P0.05 GPIO fix");
+    static int work_count = 0;
     
-    // 立即配置一次
-    configure_p0_05();
+    // 主要使用强力重置方法
+    hammer_p0_05_config();
+    
+    // 偶尔尝试替代方法
+    if (work_count % 10 == 0) {
+        alternative_p0_05_config();
+    }
+    
+    work_count++;
+    
+    // 非常激进的频率：前期快速，后期维持
+    uint32_t delay_ms = (work_count < 20) ? 50 :   // 50ms间隔
+                        (work_count < 50) ? 100 :  // 100ms间隔
+                        500;                       // 500ms间隔
+    
+    k_work_reschedule(&hammer_work, K_MSEC(delay_ms));
+}
+
+static int gpio_p0_05_hammer_init(void)
+{
+    LOG_INF("=== STARTING P0.05 HAMMER FIX ===");
+    
+    // 获取GPIO设备
+    gpio0_dev = DEVICE_DT_GET(P0_05_PORT);
+    if (!device_is_ready(gpio0_dev)) {
+        LOG_ERR("GPIO0 not ready at init");
+        // 我们仍然会尝试，因为设备可能在之后变得可用
+    }
+    
+    // 立即开始强力修复
+    hammer_p0_05_config();
     
     // 启动持续修复
-    k_work_init_delayable(&fix_work, fix_handler);
-    k_work_reschedule(&fix_work, K_MSEC(50));
+    k_work_init_delayable(&hammer_work, hammer_handler);
+    k_work_reschedule(&hammer_work, K_MSEC(10)); // 10ms后开始
     
+    LOG_INF("=== P0.05 HAMMER FIX STARTED ===");
     return 0;
 }
 
-SYS_INIT(gpio_p0_05_fix_init, POST_KERNEL, 50);
+SYS_INIT(gpio_p0_05_hammer_init, POST_KERNEL, 30);
