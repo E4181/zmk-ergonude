@@ -12,21 +12,6 @@
             low-power-enable;
         };
     };
-
-matrix_default: matrix_default {
-    group1 {
-        psels = <NRF_PSEL(GPIOTE_EVENT_IN, 0, 5)>;  /* 使用 GPIOTE_EVENT_IN 作为占位，如果使用事件驱动矩阵 */
-        nordic,drive-mode = <NRF_DRIVE_H0H1>;  /* 高驱动模式 */
-        bias-pull-down;  /* 下拉电阻 */
-    };
-};
-
-matrix_sleep: matrix_sleep {
-    group1 {
-        psels = <NRF_PSEL(GPIOTE_EVENT_IN, 0, 5)>;
-        nordic,low-power-enable;  /* 低功耗模式（可选） */
-    };
-};
 };
 
 &spi3 {
