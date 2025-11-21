@@ -4,6 +4,10 @@
     status = "disabled";
 };
 
+&gpio0 {
+    status = "okay";
+};
+
 &pinctrl {
     spi3_default: spi3_default {
         group1 {
